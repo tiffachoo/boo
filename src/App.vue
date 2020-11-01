@@ -127,11 +127,6 @@
 <script>
 import anime from 'animejs/lib/anime.es.js';
 
-// const appCenter = document.body.getBoundingClientRect();
-// // const appCenterX = appCenter.width / 2;
-// const appCenterY = appCenter.height / 2;
-// console.log(appCenter);
-
 export default {
 	name: 'App',
 	data() {
@@ -177,7 +172,7 @@ export default {
 			if (!this.throttle) {
 				this.throttle = true; 
 				setTimeout(() => {
-					const mousePos = {x: e.clientX, y: e.clientY};
+					const mousePos = { x: e.clientX, y: e.clientY };
 					
 					// move boo
 					this.movingAway && document.documentElement.style.setProperty('--pos-x', -(this.appCenter.x - mousePos.x));

@@ -1,24 +1,22 @@
-# boo
+# Peek-a-boo 👻
 
-## Project setup
+> A Boo that tries to follow a cursor.
+
+⚡️ [View Codepen](https://codepen.io/tiffachoo/pen/qjrBJP)
+
+### Starring
+* Vue.js
+* Anime.js
+* Sass
+
+---
+
+#### Setup
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+#### Development
 ```
 npm run serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
