@@ -1,5 +1,5 @@
 <template>
-	<div id="app" @mousemove="getMousePos">
+	<div id="app">
 		<div class="pattern-wrapper">
 			<svg class="pattern-bg" id="castle" viewBox="0 0 500 500">
 				<defs>
@@ -14,14 +14,21 @@
 			</svg>
 		</div>
 		
-		<svg id="boo" viewBox="0 0 150 150">
+		<svg 
+			id="boo" 
+			ref="boo"
+			viewBox="0 0 150 150"
+		>
 			<defs>
 				<clipPath id="clipMouth">
 					<path class="no-fill-for-you" d="M64.13,73.09C60.7,75.27,49,79.25,39.4,79.43A33.12,33.12,0,0,1,24.68,76.1s5.82,34.29,20.7,34.29C64.13,110.4,64.13,73.09,64.13,73.09Z"/>
 				</clipPath>
 			</defs>
 			<title>boo</title>
-			<g class="inner-wrapper" v-bind:class="{ mirror: onRight, cover: !movingAway }">
+			<g 
+				:class="{ mirror: onRight, cover: !movingAway }"
+				class="inner-wrapper" 
+			>
 				<g id="armLeft">
 					<g v-if="movingAway">
 						<path class="boo-body-fill" d="M15.94,82.21s-15.1-21.7-7.69-29c2.07-2,19.51,6.32,20.55,21.55a26.51,26.51,0,0,1-2.19,12.38c-4,9.31-4,8.36-4,8.36L20,87.05Z"/>
@@ -105,7 +112,10 @@
 						:d="movingAway ? 'M22.64,75A32.84,32.84,0,0,0,39.4,79.43c9.56-.18,21.31-4.16,24.74-6.34' : 'M38.41,103.33s1.26-3.15,4-3.26,5.69,2,9.26,4.34'"
 					/>
 				</g>
-				<g id="armLeftFront" v-if="!movingAway">
+				<g 
+					v-if="!movingAway"
+					id="armLeftFront" 
+				>
 					<path class="boo-body-fill" d="M28.12,82.21s15.1-21.7,7.69-29c-2.07-2-19.51,6.32-20.55,21.55a26.51,26.51,0,0,0,2.19,12.38,38.34,38.34,0,0,0,12,14.81L24,87.05Z"/>
 					<path class="boo-body-stroke" d="M25.12,83.21s15.1-21.7,7.69-29c-2.07-2-19.51,6.32-20.55,21.55-1.13,16.63,14.15,27.19,14.15,27.19"/>
 				</g>
@@ -117,9 +127,10 @@
 <script>
 import anime from 'animejs/lib/anime.es.js';
 
-const appCenter = document.body.getBoundingClientRect();
-const appCenterX = appCenter.left + (appCenter.width / 2);
-const appCenterY = appCenter.top + (appCenter.height / 2);
+// const appCenter = document.body.getBoundingClientRect();
+// // const appCenterX = appCenter.width / 2;
+// const appCenterY = appCenter.height / 2;
+// console.log(appCenter);
 
 export default {
 	name: 'App',
@@ -128,9 +139,13 @@ export default {
 			onRight: false,
 			movingAway: true,
 			booPos: '',
-			// booCenter: 0,
 			mouseFromBooPos: 0,
-			lastMouseFromBooPos: 0
+			lastMouseFromBooPos: 0,
+			appCenter: {
+				x: 0,
+				y: 0
+			},
+			throttle: false
 		}
 	},
 	computed: {
@@ -141,39 +156,59 @@ export default {
 			return Math.abs(this.lastMouseFromBooPos - this.mouseFromBooPos);
 		}
 	},
-	methods: {
-		getMousePos: function(e) {
-			const mousePos = {x: e.clientX, y: e.clientY};
-			
-			// move boo
-			this.movingAway && document.documentElement.style.setProperty('--pos-x', -(appCenterX - mousePos.x));
-			this.movingAway && document.documentElement.style.setProperty('--pos-y', -(appCenterY - mousePos.y));
-			
-			const boo = document.getElementById('boo');
-			this.booPos = boo.getBoundingClientRect();
-			this.mouseFromBooPos = this.getCenter - mousePos.x;
-			
-			// check where the mouse is relative to boo
-			this.onRight = (this.mouseFromBooPos <= 0) || false;
-			if (this.getDelta > 15) {
-				this.movingAway = ((!this.onRight && this.mouseFromBooPos >= this.lastMouseFromBooPos) || (this.onRight && this.mouseFromBooPos <= this.lastMouseFromBooPos)) || false;
-			}
-			
-			if (!this.movingAway) {
-				this.moveArm('#armRight', 180, 10);
-				this.moveEye('#eyeRight');
-				this.moveEye('#eyeLeft');
-				this.moveMouth('#mouth', 'M38.41,103.33s1.26-3.15,4-3.26,5.69,2,9.26,4.34');
-			} else {
-				this.moveArm('#armRight', 0, 0);
-				this.moveEye('#eyeRight', 1);
-				this.moveEye('#eyeLeft', 1);
-				this.moveMouth('#mouth', 'M22.64,75A32.84,32.84,0,0,0,39.4,79.43c9.56-.18,21.31-4.16,24.74-6.34', 1);
-			}
-			
-			this.lastMouseFromBooPos = this.mouseFromBooPos;
-		},
+	mounted() {
+		this.appCenter.x = window.innerWidth / 2;
+		this.appCenter.y = window.innerHeight / 2;
+
+		document.body.addEventListener('mousemove', this.getMousePos);
 		
+		anime({
+			targets: '.boo-shadow-fill',
+			translateY: -17,
+			elasticity: 0,
+			easing: 'linear',
+			direction: 'alternate',
+			loop: true,
+			duration: 5000
+		});
+	},
+	methods: {
+		getMousePos(e) {
+			if (!this.throttle) {
+				this.throttle = true; 
+				setTimeout(() => {
+					const mousePos = {x: e.clientX, y: e.clientY};
+					
+					// move boo
+					this.movingAway && document.documentElement.style.setProperty('--pos-x', -(this.appCenter.x - mousePos.x));
+					this.movingAway && document.documentElement.style.setProperty('--pos-y', -(this.appCenter.y - mousePos.y));
+					
+					this.booPos = this.$refs.boo.getBoundingClientRect();
+					this.mouseFromBooPos = this.getCenter - mousePos.x;
+					
+					// check where the mouse is relative to boo
+					this.onRight = (this.mouseFromBooPos <= 0);
+					if (this.getDelta > 15) {
+						this.movingAway = ((!this.onRight && this.mouseFromBooPos > this.lastMouseFromBooPos) || (this.onRight && this.mouseFromBooPos < this.lastMouseFromBooPos));
+					}
+					
+					if (!this.movingAway) {
+						this.moveArm('#armRight', 180, 10);
+						this.moveEye('#eyeRight');
+						this.moveEye('#eyeLeft');
+						this.moveMouth('#mouth', 'M38.41,103.33s1.26-3.15,4-3.26,5.69,2,9.26,4.34');
+					} else {
+						this.moveArm('#armRight', 0, 0);
+						this.moveEye('#eyeRight', 1);
+						this.moveEye('#eyeLeft', 1);
+						this.moveMouth('#mouth', 'M22.64,75A32.84,32.84,0,0,0,39.4,79.43c9.56-.18,21.31-4.16,24.74-6.34', 1);
+					}
+					
+					this.lastMouseFromBooPos = this.mouseFromBooPos;
+					this.throttle = false;
+				}, 100);
+			}
+		},
 		moveArm(el, degY, deg) {
 			let arm = anime({
 				targets: el,
@@ -186,7 +221,6 @@ export default {
 			
 			return arm;
 		},
-		
 		moveEye(el, val = 0) {
 			let eye = anime.timeline();
 			eye 
@@ -214,7 +248,6 @@ export default {
 			
 			return eye;
 		},
-		
 		moveMouth(el, path, val = 0) {
 			let mouth = anime.timeline();
 			mouth
@@ -243,23 +276,11 @@ export default {
 			
 			return mouth;
 		}
-	},
-	mounted() {
-		let shadow = anime({
-			targets: '.boo-shadow-fill',
-			translateY: -17,
-			elasticity: 0,
-			easing: 'linear',
-			direction: 'alternate',
-			loop: true,
-			duration: 5000
-		});
-		
-		return shadow;
 	}
 }
 </script>
 
 <style lang="scss">
+@import '@/styles/reset';
 @import '@/styles/styles';
 </style>

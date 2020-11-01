@@ -8,6 +8,7 @@ $white: #fff;
 $grey: #888;
 
 * { box-sizing: border-box; }
+
 body {
 	height: 100vh;
 	background-color: $grey;
@@ -16,6 +17,7 @@ body {
 	line-height: 1.875em;
 	color: $white;
 }
+
 #app {
 	display: flex;
 	justify-content: center;
@@ -45,10 +47,12 @@ body {
 	fill: url(#castleBrick);
 }
 
-$booPosX: translateX(calc(var(--pos-x) * 0.7px));
-$booPosY: translateY(calc(var(--pos-y) * 1px));
+$booPosX: translateX(calc(var(--pos-x, 0) * 0.7px));
+$booPosY: translateY(calc(var(--pos-y, 0) * 1px));
+
 #boo {
-	width: 120px;
+	position: absolute;
+	width: 150px;
 	transform: $booPosX $booPosY;
 	transform-origin: center center;
 	transition: 0.4s;
